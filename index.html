@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Mahjong Ways 2 - Telegram Bot</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<style>*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui}body{background:linear-gradient(135deg,#0d001a,#1a0033);color:#fff;height:100vh;display:flex;flex-direction:column;overflow:hidden}#header{background:rgba(0,0,0,.95);padding:12px;font-weight:700;border-bottom:3px solid gold;position:sticky;top:0;z-index:10}#info{font-size:14px;margin-top:5px}.grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:4px;padding:15px;max-width:95vw;aspect-ratio:16/9;margin:auto}.cell{background:#16213e;border:3px solid #2d3748;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:clamp(20px,5vw,32px);transition:all .4s cubic-bezier(.25,.46,.45,.94);position:relative;overflow:hidden;aspect-ratio:1}.cell:before{content:'';position:absolute;inset:0;background:linear-gradient(45deg,transparent 30%,rgba(255,255,255,.1) 50%,transparent 70%);opacity:.3;transition:opacity .3s}.cell.golden{border-color:gold!important;background:linear-gradient(135deg,#ffd700,#ffed4a)!important;box-shadow:0 0 25px gold!important;animation:glow 1.5s ease-in-out infinite alternate}.cell.scatter{box-shadow:0 0 20px hotpink!important;animation:pulse 1s infinite}.cell.wild{box-shadow:0 0 20px cyan!important}.cell.win{background:linear-gradient(45deg,#00ff88,#32cd32)!important;animation:bounce .6s infinite}@keyframes glow{0%{box-shadow:0 0 15px gold}100%{box-shadow:0 0 35px orange}}@keyframes pulse{0%,100%{transform:scale(1) rotate(0deg)}50%{transform:scale(1.15) rotate(5deg)}}@keyframes bounce{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}#controls{padding:20px;background:rgba(0,0,0,.9);display:grid;grid-template-columns:1fr 2fr 1fr 1fr;gap:12px;max-width:400px;margin:0 auto}@media(max-width:480px){#controls{grid-template-columns:1fr;gap:10px}}button{padding:18px 12px;border:none;border-radius:15px;background:linear-gradient(45deg,gold,orange);color:#000;font-weight:900;font-size:clamp(16px,4vw,20px);cursor:pointer;box-shadow:0 6px 20px rgba(255,215,0,.5);transition:all .3s;touch-action:manipulation}button:hover{transform:translateY(-3px) scale(1.02);box-shadow:0 10px 30px rgba(255,140,0,.7)}button:active{transform:translateY(-1px)}button:disabled{background:#666;transform:none;cursor:not-allowed}#admin{position:fixed;inset:0;background:rgba(0,0,0,.98);z-index:1000;padding:25px;display:none;overflow-y:auto}#admin h3{text-align:center;margin:20px 0;color:gold}.admin-row{display:flex;gap:12px;align-items:center;margin:18px 0;flex-wrap:wrap}input{padding:14px;border-radius:10px;border:2px solid gold;background:#111;color:#fff;font-size:16px;min-width:90px;flex:1}#close-admin{position:absolute;top:20px;right:25px;font-size:36px;cursor:pointer;color:#ccc}.info{font-size:12px;color:#aaa;text-align:center}</style>
+</head>
+<body>
+<div id="header">
+🀄 <strong>Mahjong Ways 2 PG Soft</strong><br>
+<div id="info">💰 $<span id="saldo">10000</span> | 🎯 $<span id="bet">20</span> | 🏆 $<span id="win">0</span> | 🔥 <span id="multi">1x</span></div>
+</div>
+<div style="flex:1;display:flex;align-items:center;justify-content:center;padding:10px">
+<div id="grid" class="grid"></div>
+</div>
+<div id="controls">
+<button onclick="changeBet(-5)">- BET</button>
+<button id="spinBtn" onclick="spin()">🎰 SPIN</button>
+<button onclick="changeBet(5)">+ BET</button>
+<button onclick="toggleAdmin()">⚙️ ADMIN</button>
+</div>
+<div id="admin">
+<span id="close-admin" onclick="toggleAdmin()">❌</span>
+<h3>🎮 Admin Panel</h3>
+<div class="admin-row">
+<label>💰 Saldo:</label>
+<input id="setSaldo" type="number" value="10000">
+<button onclick="setSaldo()">Update</button>
+</div>
+<div class="admin-row">
+<label>🎯 Min Bet:</label>
+<input id="setBetMin" type="number" value="20">
+<button onclick="setBetMin()">Update</button>
+</div>
+<div class="admin-row">
+<label>⭐ Scatter:</label>
+<input id="setScatter" type="number" value="4" min="3">
+<button onclick="setScatterNeed()">Update</button>
+</div>
+<div class="admin-row">
+<label>📊 RTP:</label>
+<input id="rtp" type="range" min="92" max="99" value="96">
+<span id="rtpVal">96%</span>
+</div>
+<div class="info">RTP simulasi | Scatter prob auto-adjusted</div>
+</div>
+<script>
+if(window.Telegram?.WebApp){Telegram.WebApp.ready();Telegram.WebApp.expand()}
+let saldo=10000,bet=20,betMin=20,scatterNeed=4,rtpTarget=.96,totalWin=0,currentMulti=1,isSpinning=false;
+const gridRows=[4,5,5,5,4],syms=['🀄','🀅','🀆','🀇','🀡','🀢','🀣','🀤','💎','W','S'];
+let grid=[];
+function initGrid(){grid=[];for(let c=0;c<5;c++){grid[c]=[];for(let r=0;r<gridRows[c];r++){let s=syms[Math.floor(Math.random()*syms.length)],p=Math.random();if(p<.06)s='S';if(p<.12)s='G'+s;grid[c][r]=s}}render()}
+function render(){const g=document.getElementById('grid');g.innerHTML='';for(let c=0;c<5;c++)for(let r=0;r<gridRows[c];r++){const cell=document.createElement('div'),sym=grid[c][r];cell.className='cell';if(sym?.startsWith('G')){cell.classList.add('golden');cell.textContent=sym.slice(1)}else if(sym==='S'){cell.classList.add('scatter');cell.textContent=sym}else if(sym==='W'){cell.classList.add('wild');cell.textContent=sym}else cell.textContent=sym||'🀄';g.appendChild(cell)}}
+async function spin(){if(isSpinning||saldo<bet){alert('💸 Saldo kurang!');return}document.getElementById('spinBtn').disabled=true;isSpinning=true;saldo-=bet;updateUI();currentMulti=1;for(let i=0;i<30;i++){initGrid();await new Promise(r=>setTimeout(r,80))}let cascades=0;while(cascades<8&&Math.random()>.2){cascades++;currentMulti++;totalWin+=bet*currentMulti*.8;updateUI();initGrid();await new Promise(r=>setTimeout(r,350))}let scatters=0;for(let c=0;c<5;c++)for(let r=0;r<gridRows[c];r++)if(grid[c][r]==='S')scatters++;if(scatters>=scatterNeed){totalWin+=bet*20;alert(`🎉 FREE SPINS! ${scatters} Scatters!`)}saldo+=totalWin;totalWin=0;if(totalWin/totalBet<rtpTarget)saldo*=1.05;updateSaldo();isSpinning=false;document.getElementById('spinBtn').disabled=false}
+function updateUI(){document.getElementById('saldo').textContent=Math.floor(saldo);document.getElementById('bet').textContent=bet;document.getElementById('win').textContent=Math.floor(totalWin);document.getElementById('multi').textContent=currentMulti+'x'}
+function changeBet(d){bet=Math.max(betMin,bet+d);updateUI()}
+function toggleAdmin(){document.getElementById('admin').style.display=document.getElementById('admin').style.display==='block'?'none':'block'}
+function setSaldo(){saldo=+document.getElementById('setSaldo').value;updateSaldo()}
+function setBetMin(){betMin=+document.getElementById('setBetMin').value;bet=betMin;updateUI()}
+function setScatterNeed(){scatterNeed=+document.getElementById('setScatter').value}
+document.getElementById('rtp').oninput=e=>{rtpTarget=e.target.value/100;document.getElementById('rtpVal').textContent=e.target.value+'%'};
+initGrid();updateUI();
+</script>
+</body>
+</html>
